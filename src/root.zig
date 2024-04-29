@@ -21,6 +21,20 @@ const Cpu = struct {
         return std.mem.readInt(u16, bytes, .big);
     }
 
+    fn decode(opcode: u16) !InstructionType {
+        const first = (opcode & 0xf000) >> 12;
+        // const x = (opcode & 0x0f00) >> 8;
+        // const y = (opcode & 0x00f0) >> 4;
+        const nnn = opcode & 0x0fff;
+        // const nn = opcode & 0x00ff;
+        // const n = opcode & 0x000f;
+
+        return switch (first) {
+            0x1 => .{ .JMP = nnn },
+            else => error.InvalidOpcode,
+        };
+    }
+
     fn execute(self: *Cpu, instruction: InstructionType) void {
         switch (instruction) {
             .JMP => |addr| self.pc = addr,
@@ -41,6 +55,11 @@ test "fetch" {
     cpu.ram[cpu.pc] = 0x12;
     cpu.ram[cpu.pc + 1] = 0x34;
     try testing.expect(cpu.fetch() == 0x1234);
+}
+
+test "decode" {
+    const instruction = Cpu.decode(0x1234);
+    try testing.expectEqual(instruction, InstructionType{ .JMP = 0x234 });
 }
 
 test "JMP" {

@@ -16,9 +16,14 @@ const Cpu = struct {
     stack: [STACK_SIZE]u8 = [_]u8{0} ** STACK_SIZE,
     ram: [RAM_SIZE]u8 = [_]u8{0} ** RAM_SIZE,
 
+    fn fetch(self: *Cpu) u16 {
+        const bytes: *const [2]u8 = @ptrCast(self.ram[self.pc .. self.pc + 2]);
+        return std.mem.readInt(u16, bytes, .big);
+    }
+
     fn execute(self: *Cpu, instruction: InstructionType) void {
         switch (instruction) {
-            Instruction.JMP => |addr| self.pc = addr,
+            .JMP => |addr| self.pc = addr,
         }
     }
 };
@@ -30,6 +35,13 @@ const Instruction = enum {
 const InstructionType = union(Instruction) {
     JMP: u16,
 };
+
+test "fetch" {
+    var cpu = Cpu{};
+    cpu.ram[cpu.pc] = 0x12;
+    cpu.ram[cpu.pc + 1] = 0x34;
+    try testing.expect(cpu.fetch() == 0x1234);
+}
 
 test "JMP" {
     var cpu = Cpu{};

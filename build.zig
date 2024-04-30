@@ -16,5 +16,6 @@ pub fn build(b: *std.Build) void {
     exe.entry = .disabled;
     exe.rdynamic = true;
 
+    b.installFile("src/script.js", "script.js");
     b.installArtifact(exe);
 }

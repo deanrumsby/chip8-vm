@@ -2,6 +2,7 @@ const std = @import("std");
 const testing = std.testing;
 
 const PROGRAM_START: u16 = 0x200;
+const OPCODE_SIZE: u16 = 2;
 const V_REG_COUNT: usize = 16;
 const STACK_SIZE: usize = 16;
 const RAM_SIZE: usize = 4096;
@@ -22,8 +23,15 @@ pub const Cpu = struct {
         return .{};
     }
 
+    pub fn step(self: *Cpu) !void {
+        const opcode: u16 = self.fetch();
+        self.pc += OPCODE_SIZE;
+        const instruction = try self.decode(opcode);
+        self.execute(instruction);
+    }
+
     fn fetch(self: *Cpu) u16 {
-        const bytes: *const [2]u8 = @ptrCast(self.ram[self.pc .. self.pc + 2]);
+        const bytes: *const [2]u8 = @ptrCast(self.ram[self.pc .. self.pc + OPCODE_SIZE]);
         return std.mem.readInt(u16, bytes, .big);
     }
 
@@ -69,6 +77,16 @@ test "decode" {
     cpu.v[0] = 0x22;
     instruction = cpu.decode(0xb561);
     try testing.expectEqual(instruction, Instruction{ .JMP = 0x583 });
+}
+
+test "step" {
+    var cpu = Cpu{};
+
+    cpu.ram[cpu.pc] = 0x17;
+    cpu.ram[cpu.pc + 1] = 0x22;
+
+    try cpu.step();
+    try testing.expect(cpu.pc == 0x0722);
 }
 
 test "JMP" {

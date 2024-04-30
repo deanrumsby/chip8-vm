@@ -8,7 +8,7 @@ pub fn build(b: *std.Build) void {
 
     const exe = b.addExecutable(.{
         .name = "chip8-vm",
-        .root_source_file = .{ .path = "src/wasm/wasm.zig" },
+        .root_source_file = .{ .path = "src/wasm.zig" },
         .target = target,
         .optimize = .Debug,
     });

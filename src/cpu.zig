@@ -37,34 +37,63 @@ pub const Cpu = struct {
 
     fn decode(self: *Cpu, opcode: u16) !Instruction {
         const first = (opcode & 0xf000) >> 12;
-        // const x = (opcode & 0x0f00) >> 8;
-        // const y = (opcode & 0x00f0) >> 4;
+        const x = (opcode & 0x0f00) >> 8;
+        const y = (opcode & 0x00f0) >> 4;
         const nnn = opcode & 0x0fff;
-        // const nn = opcode & 0x00ff;
+        const nn = opcode & 0x00ff;
         const n = opcode & 0x000f;
 
         return switch (first) {
             0x0 => switch (n) {
+                // 00E0
                 0x0 => .{ .CLS = void{} },
                 else => error.InvalidOpcode,
             },
+            // 1NNN
             0x1 => .{ .JMP = nnn },
+            // 6XNN
+            0x6 => .{ .LDR = .{ &self.v[x], @intCast(nn) } },
+            // 7XNN
+            0x7 => .{ .ADD = .{ &self.v[x], @intCast(nn) } },
+            0x8 => switch (n) {
+                // 8XY0
+                0x0 => .{ .LDR = .{ &self.v[x], self.v[y] } },
+                else => error.InvalidOpcode,
+            },
+            // ANNN
+            0xa => .{ .LDI = nnn },
+            // BNNN
             0xb => .{ .JMP = nnn + self.v[0] },
+            0xf => switch (nn) {
+                // FX07
+                0x07 => .{ .LDR = .{ &self.v[x], self.dt } },
+                // FX15
+                0x15 => .{ .LDR = .{ &self.dt, self.v[x] } },
+                // FX18
+                0x18 => .{ .LDR = .{ &self.st, self.v[x] } },
+                else => error.InvalidOpcode,
+            },
             else => error.InvalidOpcode,
         };
     }
 
     fn execute(self: *Cpu, instruction: Instruction) void {
         switch (instruction) {
+            .ADD => |p| p[0].* = @addWithOverflow(p[0].*, p[1])[0],
             .CLS => self.frame = [_]u8{0} ** FRAME_SIZE,
             .JMP => |addr| self.pc = addr,
+            .LDI => |word| self.i = word,
+            .LDR => |p| p[0].* = p[1],
         }
     }
 };
 
 const Instruction = union(enum) {
+    ADD: struct { *u8, u8 },
     CLS,
     JMP: u16,
+    LDI: u16,
+    LDR: struct { *u8, u8 },
 };
 
 test "fetch" {
@@ -95,6 +124,13 @@ test "step" {
     try testing.expect(cpu.pc == 0x0722);
 }
 
+test "ADD" {
+    var cpu = Cpu{};
+    cpu.v[2] = 0x11;
+    cpu.execute(.{ .ADD = .{ &cpu.v[2], 0x01 } });
+    try testing.expect(cpu.v[2] == 0x12);
+}
+
 test "CLS" {
     var cpu = Cpu{};
     cpu.frame[34] = 0x77;
@@ -106,4 +142,18 @@ test "JMP" {
     var cpu = Cpu{};
     cpu.execute(.{ .JMP = 0x45a2 });
     try testing.expect(cpu.pc == 0x45a2);
+}
+
+test "LDI" {
+    var cpu = Cpu{};
+    cpu.execute(.{ .LDI = 0x09b1 });
+    try testing.expect(cpu.i == 0x09b1);
+}
+
+test "LDR" {
+    var cpu = Cpu{};
+    cpu.execute(.{ .LDR = .{ &cpu.dt, 0x11 } });
+    try testing.expect(cpu.dt == 0x11);
+    cpu.execute(.{ .LDR = .{ &cpu.v[3], 0xfa } });
+    try testing.expect(cpu.v[3] == 0xfa);
 }

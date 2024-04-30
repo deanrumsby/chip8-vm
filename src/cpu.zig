@@ -41,9 +41,13 @@ pub const Cpu = struct {
         // const y = (opcode & 0x00f0) >> 4;
         const nnn = opcode & 0x0fff;
         // const nn = opcode & 0x00ff;
-        // const n = opcode & 0x000f;
+        const n = opcode & 0x000f;
 
         return switch (first) {
+            0x0 => switch (n) {
+                0x0 => .{ .CLS = void{} },
+                else => error.InvalidOpcode,
+            },
             0x1 => .{ .JMP = nnn },
             0xb => .{ .JMP = nnn + self.v[0] },
             else => error.InvalidOpcode,
@@ -52,12 +56,14 @@ pub const Cpu = struct {
 
     fn execute(self: *Cpu, instruction: Instruction) void {
         switch (instruction) {
+            .CLS => self.frame = [_]u8{0} ** FRAME_SIZE,
             .JMP => |addr| self.pc = addr,
         }
     }
 };
 
 const Instruction = union(enum) {
+    CLS,
     JMP: u16,
 };
 
@@ -87,6 +93,13 @@ test "step" {
 
     try cpu.step();
     try testing.expect(cpu.pc == 0x0722);
+}
+
+test "CLS" {
+    var cpu = Cpu{};
+    cpu.frame[34] = 0x77;
+    cpu.execute(.{ .CLS = void{} });
+    try testing.expect(cpu.frame[34] == 0);
 }
 
 test "JMP" {

@@ -45,31 +45,21 @@ pub const Cpu = struct {
 
         return switch (first) {
             0x0 => switch (n) {
-                // 00E0
                 0x0 => .{ .CLS = void{} },
                 else => error.InvalidOpcode,
             },
-            // 1NNN
             0x1 => .{ .JMP = nnn },
-            // 6XNN
             0x6 => .{ .LDR = .{ &self.v[x], @intCast(nn) } },
-            // 7XNN
             0x7 => .{ .ADD = .{ &self.v[x], @intCast(nn) } },
             0x8 => switch (n) {
-                // 8XY0
                 0x0 => .{ .LDR = .{ &self.v[x], self.v[y] } },
                 else => error.InvalidOpcode,
             },
-            // ANNN
             0xa => .{ .LDI = nnn },
-            // BNNN
             0xb => .{ .JMP = nnn + self.v[0] },
             0xf => switch (nn) {
-                // FX07
                 0x07 => .{ .LDR = .{ &self.v[x], self.dt } },
-                // FX15
                 0x15 => .{ .LDR = .{ &self.dt, self.v[x] } },
-                // FX18
                 0x18 => .{ .LDR = .{ &self.st, self.v[x] } },
                 else => error.InvalidOpcode,
             },
@@ -79,18 +69,28 @@ pub const Cpu = struct {
 
     fn execute(self: *Cpu, instruction: Instruction) void {
         switch (instruction) {
-            .ADD => |p| p[0].* = @addWithOverflow(p[0].*, p[1])[0],
+            .ADD => |p| p[0].* +%= p[1],
             .CLS => self.frame = [_]u8{0} ** FRAME_SIZE,
+            // .DRW => |d| self.draw(d[0], d[1], d[2]),
             .JMP => |addr| self.pc = addr,
             .LDI => |word| self.i = word,
             .LDR => |p| p[0].* = p[1],
         }
     }
+
+    // fn draw(self: *Cpu, x: u8, y: u8, h: u4) void {
+    //     const bytes = self.ram[self.i .. self.i + h];
+    //     for (bytes, 0..h) |byte, i| {
+    //
+    //
+    //
+    // }
 };
 
 const Instruction = union(enum) {
     ADD: struct { *u8, u8 },
     CLS,
+    // DRW: struct { u8, u8, u4 },
     JMP: u16,
     LDI: u16,
     LDR: struct { *u8, u8 },
@@ -126,9 +126,9 @@ test "step" {
 
 test "ADD" {
     var cpu = Cpu{};
-    cpu.v[2] = 0x11;
+    cpu.v[2] = 0xff;
     cpu.execute(.{ .ADD = .{ &cpu.v[2], 0x01 } });
-    try testing.expect(cpu.v[2] == 0x12);
+    try testing.expect(cpu.v[2] == 0x00);
 }
 
 test "CLS" {

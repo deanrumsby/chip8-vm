@@ -5,8 +5,9 @@ const PROGRAM_START: u16 = 0x200;
 const V_REG_COUNT: usize = 16;
 const STACK_SIZE: usize = 16;
 const RAM_SIZE: usize = 4096;
+const FRAME_SIZE: usize = 64 * 32 * 4;
 
-const Cpu = struct {
+pub const Cpu = struct {
     pc: u16 = PROGRAM_START,
     i: u16 = 0x0000,
     sp: u8 = 0x00,
@@ -15,13 +16,18 @@ const Cpu = struct {
     v: [V_REG_COUNT]u8 = [_]u8{0} ** V_REG_COUNT,
     stack: [STACK_SIZE]u8 = [_]u8{0} ** STACK_SIZE,
     ram: [RAM_SIZE]u8 = [_]u8{0} ** RAM_SIZE,
+    frame: [FRAME_SIZE]u8 = [_]u8{0} ** FRAME_SIZE,
+
+    pub fn init() Cpu {
+        return .{};
+    }
 
     fn fetch(self: *Cpu) u16 {
         const bytes: *const [2]u8 = @ptrCast(self.ram[self.pc .. self.pc + 2]);
         return std.mem.readInt(u16, bytes, .big);
     }
 
-    fn decode(self: *Cpu, opcode: u16) !InstructionType {
+    fn decode(self: *Cpu, opcode: u16) !Instruction {
         const first = (opcode & 0xf000) >> 12;
         // const x = (opcode & 0x0f00) >> 8;
         // const y = (opcode & 0x00f0) >> 4;
@@ -36,18 +42,14 @@ const Cpu = struct {
         };
     }
 
-    fn execute(self: *Cpu, instruction: InstructionType) void {
+    fn execute(self: *Cpu, instruction: Instruction) void {
         switch (instruction) {
             .JMP => |addr| self.pc = addr,
         }
     }
 };
 
-const Instruction = enum {
-    JMP,
-};
-
-const InstructionType = union(Instruction) {
+const Instruction = union(enum) {
     JMP: u16,
 };
 
@@ -62,11 +64,11 @@ test "decode" {
     var cpu = Cpu{};
 
     var instruction = cpu.decode(0x1234);
-    try testing.expectEqual(instruction, InstructionType{ .JMP = 0x234 });
+    try testing.expectEqual(instruction, Instruction{ .JMP = 0x234 });
 
     cpu.v[0] = 0x22;
     instruction = cpu.decode(0xb561);
-    try testing.expectEqual(instruction, InstructionType{ .JMP = 0x583 });
+    try testing.expectEqual(instruction, Instruction{ .JMP = 0x583 });
 }
 
 test "JMP" {

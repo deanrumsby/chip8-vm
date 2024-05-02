@@ -11,6 +11,10 @@ pub const Chip8 = struct {
         self.cpu.load(bytes);
     }
 
+    pub fn update(self: *Chip8, delta: u32) !void {
+        try self.cpu.update(delta);
+    }
+
     pub fn step(self: *Chip8) !void {
         try self.cpu.step();
     }

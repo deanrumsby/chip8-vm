@@ -10,7 +10,12 @@ export fn ram_ptr() *const [4096]u8 {
     return &instance.cpu.ram;
 }
 
-export fn step() u8 {
+export fn update(delta: u32) u32 {
+    instance.update(delta) catch return 1;
+    return 0;
+}
+
+export fn step() u32 {
     instance.step() catch return 1;
     return 0;
 }

@@ -17,6 +17,10 @@ export function load(buffer) {
   dest.set(new Uint8Array(buffer));
 }
 
+export function update(delta) {
+  wasm.update(delta);
+}
+
 export function step() {
   wasm.step();
 }

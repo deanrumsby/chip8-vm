@@ -7,6 +7,7 @@ const V_REG_COUNT: usize = 16;
 const STACK_SIZE: usize = 16;
 const RAM_SIZE: usize = 4096;
 const FRAME_SIZE: usize = 64 * 32 * 4;
+const DEFAULT_SPEED: f32 = 1000 / 700;
 
 pub const Cpu = struct {
     pc: u16 = PROG_START,
@@ -18,6 +19,8 @@ pub const Cpu = struct {
     stack: [STACK_SIZE]u8 = [_]u8{0} ** STACK_SIZE,
     ram: [RAM_SIZE]u8 = [_]u8{0} ** RAM_SIZE,
     frame: [FRAME_SIZE]u8 = [_]u8{0} ** FRAME_SIZE,
+    speed: u32 = DEFAULT_SPEED,
+    time_acc: u32 = 0,
 
     pub fn init() Cpu {
         return .{};
@@ -25,6 +28,15 @@ pub const Cpu = struct {
 
     pub fn load(self: *Cpu, bytes: []const u8) void {
         @memcpy(self.ram[PROG_START .. PROG_START + bytes.len], bytes);
+    }
+
+    pub fn update(self: *Cpu, delta: u32) !void {
+        const total = self.time_acc + delta;
+        const instructions = total / self.speed;
+        for (0..instructions) |_| {
+            try self.step();
+        }
+        self.time_acc = total % self.speed;
     }
 
     pub fn step(self: *Cpu) !void {

@@ -7,6 +7,14 @@ pub const Chip8 = struct {
         return .{};
     }
 
+    pub fn load(self: *Chip8, bytes: []const u8) void {
+        self.cpu.load(bytes);
+    }
+
+    pub fn step(self: *Chip8) !void {
+        try self.cpu.step();
+    }
+
     pub fn frame_ptr(self: *Chip8) *const [32 * 64 * 4]u8 {
         return &self.cpu.frame;
     }

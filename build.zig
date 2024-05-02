@@ -16,6 +16,8 @@ pub fn build(b: *std.Build) void {
     exe.entry = .disabled;
     exe.rdynamic = true;
 
-    b.installFile("src/script.js", "script.js");
+    b.installFile("src/chip8.js", "chip8.js");
+    b.installFile("src/index.html", "index.html");
+    b.installFile("src/index.js", "index.js");
     b.installArtifact(exe);
 }

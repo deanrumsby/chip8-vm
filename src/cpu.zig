@@ -87,13 +87,13 @@ pub const Cpu = struct {
         const bytes = self.ram[self.i .. self.i + h];
         for (bytes, 0..h) |byte, i| {
             for (0..8) |j| {
-                const offset = (x + i) * 64 * 4 + (y + j) * 4;
-                const bit = (byte >> (7 - j)) & 1;
+                const offset = ((x + j) * 4) + ((y + i) * 64 * 4);
+                const bit = std.math.shr(u8, byte, (7 - j)) & 1;
                 const pixel = &self.frame[offset + 3];
                 if (pixel.* == 1 and bit == 1) {
                     self.v[0xf] = 1;
                 }
-                pixel.* = if (pixel.* != bit) 1 else 0;
+                pixel.* = if (pixel.* != bit) 0xff else 0;
             }
         }
     }

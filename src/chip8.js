@@ -4,11 +4,19 @@ const PROG_START = 0x200;
 const FRAME_SIZE = 64 * 32 * 4;
 
 WebAssembly.instantiateStreaming(fetch("./bin/chip8-vm.wasm")).then(
-  (obj) => wasm = obj.instance.exports,
+  (obj) => (wasm = obj.instance.exports),
 );
 
+export function pc() {
+  return wasm.pc();
+}
+
 export function frame() {
-  return new Uint8ClampedArray(wasm.memory.buffer, wasm.frame_ptr(), FRAME_SIZE);
+  return new Uint8ClampedArray(
+    wasm.memory.buffer,
+    wasm.frame_ptr(),
+    FRAME_SIZE,
+  );
 }
 
 export function load(buffer) {

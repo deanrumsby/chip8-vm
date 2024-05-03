@@ -26,8 +26,8 @@ function handleFile(e) {
   const file = e.target.files[0];
   const reader = new FileReader();
   reader.onload = (e) => {
-          load(e.target.result);
-  }
+    load(e.target.result);
+  };
   reader.readAsArrayBuffer(file);
 }
 

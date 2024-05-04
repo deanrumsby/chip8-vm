@@ -11,6 +11,10 @@ pub const Chip8 = struct {
         return .{};
     }
 
+    pub fn reset(self: *Chip8) void {
+        self.cpu.reset();
+    }
+
     pub fn load(self: *Chip8, bytes: []const u8) void {
         self.cpu.load(bytes);
     }

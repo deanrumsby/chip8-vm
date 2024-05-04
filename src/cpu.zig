@@ -30,6 +30,20 @@ pub const Cpu = struct {
         @memcpy(self.ram[PROG_START .. PROG_START + bytes.len], bytes);
     }
 
+    pub fn reset(self: *Cpu) void {
+        self.pc = PROG_START;
+        self.i = 0x0000;
+        self.sp = 0x00;
+        self.st = 0x00;
+        self.dt = 0x00;
+        self.v = [_]u8{0} ** V_REG_COUNT;
+        self.stack = [_]u8{0} ** STACK_SIZE;
+        self.ram = [_]u8{0} ** RAM_SIZE;
+        self.frame = [_]u8{0} ** FRAME_SIZE;
+        self.speed = DEFAULT_SPEED;
+        self.time_acc = 0;
+    }
+
     pub fn update(self: *Cpu, delta: f32) !void {
         const total: f32 = self.time_acc + delta;
         const instructions: usize = @intFromFloat(total / self.speed);

@@ -16,6 +16,10 @@ export const registers = {
   },
 };
 
+export function reset() {
+  wasm.reset();
+}
+
 export function frame() {
   return new Uint8ClampedArray(
     wasm.memory.buffer,

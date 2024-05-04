@@ -5,6 +5,10 @@ const FRAME_SIZE = chip8.FRAME_SIZE;
 
 var instance = Chip8.init();
 
+export fn reset() void {
+    return instance.reset();
+}
+
 export fn pc() u32 {
     return instance.get_register(.PC);
 }

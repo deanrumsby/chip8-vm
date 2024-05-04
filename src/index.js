@@ -1,7 +1,19 @@
-import { init, load, step, frame, update, registers } from "./chip8.js";
+import { init, reset, load, step, frame, update, registers } from "./chip8.js";
 
 let prevTime;
 let running = false;
+let loading = false;
+
+const reader = new FileReader();
+reader.onload = (e) => {
+  load(e.target.result);
+  loading = false;
+  if (!running) {
+    refresh();
+  }
+};
+
+let file;
 
 function run(timeStamp) {
   if (prevTime === undefined) {
@@ -9,8 +21,11 @@ function run(timeStamp) {
   }
   const delta = timeStamp - prevTime;
   prevTime = timeStamp;
-  update(delta);
-  refresh();
+
+  if (!loading) {
+    update(delta);
+    refresh();
+  }
 
   if (running) {
     window.requestAnimationFrame(run);
@@ -33,11 +48,8 @@ function refreshRegisters() {
 }
 
 function handleFile(e) {
-  const file = e.target.files[0];
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    load(e.target.result);
-  };
+  file = e.target.files[0];
+  loading = true;
   reader.readAsArrayBuffer(file);
 }
 
@@ -56,6 +68,13 @@ function handlePause() {
   prevTime = undefined;
 }
 
+function handleReset() {
+  prevTime = undefined;
+  reset();
+  loading = true;
+  reader.readAsArrayBuffer(file);
+}
+
 const fileInput = document.getElementById("input");
 fileInput.addEventListener("change", handleFile);
 
@@ -67,6 +86,9 @@ playButton.addEventListener("click", handlePlay);
 
 const pauseButton = document.getElementById("pause");
 pauseButton.addEventListener("click", handlePause);
+
+const resetButton = document.getElementById("reset");
+resetButton.addEventListener("click", handleReset);
 
 const canvas = document.getElementById("canvas");
 

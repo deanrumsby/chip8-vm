@@ -4,16 +4,11 @@ let prevTime;
 let running = false;
 let loading = false;
 
-const reader = new FileReader();
-reader.onload = (e) => {
-  load(e.target.result);
-  loading = false;
-  if (!running) {
-    refresh();
-  }
-};
-
 let file;
+let reader;
+
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
 
 function run(timeStamp) {
   if (prevTime === undefined) {
@@ -39,7 +34,7 @@ function refresh() {
 
 function refreshFrame() {
   const image = new ImageData(frame(), 64, 32);
-  canvas.getContext("2d").putImageData(image, 0, 0);
+  ctx.putImageData(image, 0, 0);
 }
 
 function refreshRegisters() {
@@ -75,21 +70,31 @@ function handleReset() {
   reader.readAsArrayBuffer(file);
 }
 
-const fileInput = document.getElementById("input");
-fileInput.addEventListener("change", handleFile);
+function initFileReader() {
+  const filePicker = document.querySelector("#file");
+  filePicker.addEventListener("change", handleFile);
 
-const stepButton = document.getElementById("step");
-stepButton.addEventListener("click", handleStep);
+  reader = new FileReader();
+  reader.onload = (e) => {
+    load(e.target.result);
+    loading = false;
+    if (!running) {
+      refresh();
+    }
+  };
+}
 
-const playButton = document.getElementById("play");
-playButton.addEventListener("click", handlePlay);
-
-const pauseButton = document.getElementById("pause");
-pauseButton.addEventListener("click", handlePause);
-
-const resetButton = document.getElementById("reset");
-resetButton.addEventListener("click", handleReset);
-
-const canvas = document.getElementById("canvas");
+function initControlButtons() {
+  const handlers = {
+    play: handlePlay,
+    pause: handlePause,
+    step: handleStep,
+    reset: handleReset,
+  };
+  const controls = document.querySelectorAll(".control");
+  controls.forEach((c) => c.addEventListener("click", handlers[c.id]));
+}
 
 init(refresh);
+initFileReader();
+initControlButtons();

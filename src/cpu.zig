@@ -46,6 +46,28 @@ pub const Cpu = struct {
         self.execute(instruction);
     }
 
+    pub fn get_register(self: *Cpu, register: Register) u32 {
+        return switch (register) {
+            .PC => self.pc,
+            .I => self.i,
+            .SP => self.sp,
+            .ST => self.st,
+            .DT => self.dt,
+            .V => |i| self.v[i],
+        };
+    }
+
+    pub fn set_register(self: *Cpu, register: Register, value: u32) void {
+        switch (register) {
+            .PC => self.pc = @truncate(value),
+            .I => self.i = @truncate(value),
+            .SP => self.sp = @truncate(value),
+            .ST => self.st = @truncate(value),
+            .DT => self.dt = @truncate(value),
+            .V => |i| self.v[i] = @truncate(value),
+        }
+    }
+
     fn fetch(self: *Cpu) u16 {
         const bytes: *const [2]u8 = @ptrCast(self.ram[self.pc .. self.pc + OPCODE_SIZE]);
         return std.mem.readInt(u16, bytes, .big);
@@ -111,6 +133,15 @@ pub const Cpu = struct {
     }
 };
 
+const Register = union(enum) {
+    PC,
+    I,
+    SP,
+    ST,
+    DT,
+    V: u4,
+};
+
 const Instruction = union(enum) {
     ADD: struct { *u8, u8 },
     CLS,
@@ -157,6 +188,30 @@ test "step" {
 
     try cpu.step();
     try testing.expect(cpu.pc == 0x0722);
+}
+
+test "get_register" {
+    var cpu = Cpu{};
+
+    cpu.pc = 0x2255;
+    cpu.st = 0xab;
+    cpu.v[5] = 0xf1;
+
+    try testing.expect(cpu.get_register(.PC) == cpu.pc);
+    try testing.expect(cpu.get_register(.ST) == cpu.st);
+    try testing.expect(cpu.get_register(.{ .V = 5 }) == cpu.v[5]);
+}
+
+test "set_register" {
+    var cpu = Cpu{};
+
+    cpu.set_register(.PC, 0x4512);
+    cpu.set_register(.DT, 0x23);
+    cpu.set_register(.{ .V = 2 }, 0x67);
+
+    try testing.expect(cpu.pc == 0x4512);
+    try testing.expect(cpu.dt == 0x23);
+    try testing.expect(cpu.v[2] == 0x67);
 }
 
 test "ADD" {

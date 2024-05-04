@@ -1,4 +1,4 @@
-import { load, step, frame, update } from "./chip8.js";
+import { init, load, step, frame, update, registers } from "./chip8.js";
 
 let prevTime;
 let running = false;
@@ -10,16 +10,26 @@ function run(timeStamp) {
   const delta = timeStamp - prevTime;
   prevTime = timeStamp;
   update(delta);
-  updateFrame();
+  refresh();
 
   if (running) {
     window.requestAnimationFrame(run);
   }
 }
 
-function updateFrame() {
+function refresh() {
+  refreshFrame();
+  refreshRegisters();
+}
+
+function refreshFrame() {
   const image = new ImageData(frame(), 64, 32);
   canvas.getContext("2d").putImageData(image, 0, 0);
+}
+
+function refreshRegisters() {
+  const pc = document.querySelector("#pc");
+  pc.value = registers.pc.toString(16);
 }
 
 function handleFile(e) {
@@ -33,7 +43,7 @@ function handleFile(e) {
 
 function handleStep() {
   step();
-  updateFrame();
+  refresh();
 }
 
 function handlePlay() {
@@ -59,3 +69,5 @@ const pauseButton = document.getElementById("pause");
 pauseButton.addEventListener("click", handlePause);
 
 const canvas = document.getElementById("canvas");
+
+init(refresh);

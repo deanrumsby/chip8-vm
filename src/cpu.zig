@@ -133,7 +133,7 @@ pub const Cpu = struct {
     }
 };
 
-const Register = union(enum) {
+pub const Register = union(enum) {
     PC,
     I,
     SP,

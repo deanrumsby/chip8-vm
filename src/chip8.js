@@ -1,12 +1,20 @@
 let wasm;
 
-WebAssembly.instantiateStreaming(fetch("./bin/chip8-vm.wasm")).then(
-  (obj) => (wasm = obj.instance.exports),
-);
-
-export function pc() {
-  return wasm.pc();
+export function init(callback) {
+  WebAssembly.instantiateStreaming(fetch("./bin/chip8-vm.wasm"))
+    .then((obj) => (wasm = obj.instance.exports))
+    .then(() => callback());
 }
+
+export const registers = {
+  get pc() {
+    return wasm.pc();
+  },
+
+  set pc(value) {
+    wasm.set_pc(value);
+  },
+};
 
 export function frame() {
   return new Uint8ClampedArray(

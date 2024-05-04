@@ -1,4 +1,7 @@
-const Cpu = @import("./cpu.zig").Cpu;
+const cpu = @import("./cpu.zig");
+const Cpu = cpu.Cpu;
+const PROG_START = cpu.PROG_START;
+pub const FRAME_SIZE = cpu.FRAME_SIZE;
 
 pub const Chip8 = struct {
     cpu: Cpu = Cpu{},
@@ -19,7 +22,12 @@ pub const Chip8 = struct {
         try self.cpu.step();
     }
 
-    pub fn frame_ptr(self: *Chip8) *const [32 * 64 * 4]u8 {
+    pub fn frame_ptr(self: *Chip8) *const [FRAME_SIZE]u8 {
         return &self.cpu.frame;
+    }
+
+    pub fn prog_ptr(self: *Chip8) [*]const u8 {
+        const base_ptr: [*]const u8 = &self.cpu.ram;
+        return base_ptr + PROG_START;
     }
 };

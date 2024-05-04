@@ -1,17 +1,27 @@
-const chip8 = @import("./chip8.zig").Chip8;
+const chip8 = @import("./chip8.zig");
+const Chip8 = chip8.Chip8;
+const FRAME_SIZE = chip8.FRAME_SIZE;
 
-var instance = chip8.init();
+var instance = Chip8.init();
 
 export fn pc() u16 {
     return instance.cpu.pc;
 }
 
-export fn frame_ptr() *const [64 * 32 * 4]u8 {
-    return &instance.cpu.frame;
+export fn i() u16 {
+    return instance.cpu.i;
 }
 
-export fn ram_ptr() *const [4096]u8 {
-    return &instance.cpu.ram;
+export fn frame_ptr() *const [FRAME_SIZE]u8 {
+    return instance.frame_ptr();
+}
+
+export fn frame_size() u32 {
+    return FRAME_SIZE;
+}
+
+export fn prog_ptr() [*]const u8 {
+    return instance.prog_ptr();
 }
 
 export fn update(delta: f32) f32 {

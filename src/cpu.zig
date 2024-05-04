@@ -1,12 +1,12 @@
 const std = @import("std");
 const testing = std.testing;
 
-const PROG_START: u16 = 0x200;
+pub const PROG_START: u16 = 0x200;
+pub const RAM_SIZE: usize = 4096;
+pub const FRAME_SIZE: usize = 64 * 32 * 4;
 const OPCODE_SIZE: u16 = 2;
 const V_REG_COUNT: usize = 16;
 const STACK_SIZE: usize = 16;
-const RAM_SIZE: usize = 4096;
-const FRAME_SIZE: usize = 64 * 32 * 4;
 const DEFAULT_SPEED: f32 = 1000 / 700;
 
 pub const Cpu = struct {

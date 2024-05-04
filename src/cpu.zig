@@ -83,7 +83,7 @@ pub const Cpu = struct {
 
         return switch (first) {
             0x0 => switch (n) {
-                0x0 => .{ .CLS = void{} },
+                0x0 => .CLS,
                 else => error.InvalidOpcode,
             },
             0x1 => .{ .JMP = nnn },
@@ -224,7 +224,7 @@ test "ADD" {
 test "CLS" {
     var cpu = Cpu{};
     cpu.frame[34] = 0x77;
-    cpu.execute(.{ .CLS = void{} });
+    cpu.execute(.CLS);
     try testing.expect(cpu.frame[34] == 0);
 }
 

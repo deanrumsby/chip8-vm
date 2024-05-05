@@ -21,20 +21,40 @@ export fn i() u32 {
     return instance.get_register(.I);
 }
 
+export fn set_i(value: u32) void {
+    instance.set_register(.I, value);
+}
+
 export fn sp() u32 {
     return instance.get_register(.SP);
+}
+
+export fn set_sp(value: u32) void {
+    instance.set_register(.SP, value);
 }
 
 export fn st() u32 {
     return instance.get_register(.ST);
 }
 
+export fn set_st(value: u32) void {
+    instance.set_register(.ST, value);
+}
+
 export fn dt() u32 {
     return instance.get_register(.DT);
 }
 
+export fn set_dt(value: u32) void {
+    instance.set_register(.DT, value);
+}
+
 export fn v(j: u32) u32 {
     return instance.get_register(.{ .V = @truncate(j) });
+}
+
+export fn set_v(j: u32, value: u32) void {
+    instance.set_register(.{ .V = @truncate(j) }, value);
 }
 
 export fn frame_ptr() *const [FRAME_SIZE]u8 {

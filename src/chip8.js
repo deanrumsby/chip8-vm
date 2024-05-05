@@ -6,15 +6,35 @@ export function init(callback) {
     .then(() => callback());
 }
 
-export const registers = {
-  get pc() {
-    return wasm.pc();
-  },
+export function get_register(register, index) {
+  const map = {
+    pc: wasm.pc,
+    i: wasm.i,
+    sp: wasm.sp,
+    st: wasm.st,
+    dt: wasm.dt,
+    v: wasm.v,
+  };
+  if (index) {
+    return map[register](index);
+  }
+  return map[register]();
+}
 
-  set pc(value) {
-    wasm.set_pc(value);
-  },
-};
+export function set_register(register, index, value) {
+  const map = {
+    pc: wasm.set_pc,
+    i: wasm.set_i,
+    sp: wasm.set_sp,
+    st: wasm.set_st,
+    dt: wasm.set_dt,
+    v: wasm.set_v,
+  };
+  if (index) {
+    map[register](index, value);
+  }
+  map[register](value);
+}
 
 export function reset() {
   wasm.reset();

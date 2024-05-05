@@ -1,4 +1,13 @@
-import { init, reset, load, step, frame, update, registers } from "./chip8.js";
+import {
+  init,
+  reset,
+  load,
+  step,
+  frame,
+  update,
+  get_register,
+  set_register,
+} from "./chip8.js";
 
 let prevTime;
 let running = false;
@@ -38,8 +47,14 @@ function refreshFrame() {
 }
 
 function refreshRegisters() {
-  const pc = document.querySelector("#pc");
-  pc.value = registers.pc.toString(16);
+  const registers = document.querySelectorAll(".register");
+  console.log(registers);
+  registers.forEach(
+    (r) =>
+      (r.value = get_register(r.dataset.name, parseInt(r.dataset.index))
+        .toString(16)
+        .padStart(r.size, "0")),
+  );
 }
 
 function handleFile(e) {
@@ -70,6 +85,16 @@ function handleReset() {
   reader.readAsArrayBuffer(file);
 }
 
+function disableControls() {
+  const controls = document.querySelectorAll(".control");
+  controls.forEach((c) => (c.disabled = true));
+}
+
+function enableControls() {
+  const controls = document.querySelectorAll(".control");
+  controls.forEach((c) => (c.disabled = false));
+}
+
 function initFileReader() {
   const filePicker = document.querySelector("#file");
   filePicker.addEventListener("change", handleFile);
@@ -95,6 +120,25 @@ function initControlButtons() {
   controls.forEach((c) => c.addEventListener("click", handlers[c.id]));
 }
 
+function initRegisterInputs() {
+  const registers = document.querySelectorAll(".register");
+  registers.forEach((r) =>
+    r.addEventListener("input", (e) => {
+      if (e.target.validity.patternMismatch) {
+        disableControls();
+      } else {
+        set_register(
+          r.dataset.name,
+          parseInt(r.dataset.index),
+          parseInt(e.target.value, 16),
+        );
+        enableControls();
+      }
+    }),
+  );
+}
+
 init(refresh);
 initFileReader();
 initControlButtons();
+initRegisterInputs();
